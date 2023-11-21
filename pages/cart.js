@@ -13,7 +13,6 @@ const Cart = () => {
   );
   const dispatch = useDispatch();
   const itemsInCart = useSelector(selectCartItems);
-  const router = useRouter();
 
   {
     /* useMemo is a React Hook that lets you cache the result 
@@ -42,8 +41,6 @@ const Cart = () => {
     } catch (error) {
       console.log(error);
     }
-
-    router.push("/success");
   };
 
   return (
