@@ -5,8 +5,12 @@ import Wrapper from "../components/Wrapper";
 import EmptyCart from "../components/EmptyCart";
 import CartItem from "../components/CartItem";
 import { useRouter } from "next/router";
+import { loadStripe } from "@stripe/stripe-js";
 
 const Cart = () => {
+  const stripePromise = loadStripe(
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  );
   const dispatch = useDispatch();
   const itemsInCart = useSelector(selectCartItems);
   const router = useRouter();
@@ -18,6 +22,27 @@ const Cart = () => {
   const subTotal = useMemo(() => {
     return itemsInCart.reduce((total, val) => total + val.shoe.price, 0);
   }, [itemsInCart]); // reduce adds each price in array, initial value 0
+
+  const handleCheckout = async () => {
+    try {
+      const stripe = await stripePromise;
+      const response = await fetch("/api/payment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-cache",
+        body: JSON.stringify({ body: itemsInCart }),
+      });
+
+      const data = await response.json();
+      if (data.session) {
+        stripe?.redirectToCheckout({ sessionId: data?.session.id });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="w-full py-20">
@@ -75,12 +100,7 @@ const Cart = () => {
                 text-white text-lg font-medium transition-all
                 active:scale-95 duration-300 ease-in-out mb-3 hover:opacity-75 
                 flex items-center gap-2 justify-center"
-                  onClick={() => {
-                    router.push("/success");
-                    setTimeout(() => {
-                      dispatch(clearCart());
-                    }, 1000);
-                  }}
+                  onClick={handleCheckout}
                 >
                   Checkout
                 </button>
