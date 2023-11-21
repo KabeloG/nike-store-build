@@ -42,6 +42,8 @@ const Cart = () => {
     } catch (error) {
       console.log(error);
     }
+
+    router.push("/success");
   };
 
   return (
